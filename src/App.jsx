@@ -127,7 +127,13 @@ export function App() {
     setDragOverId(id)
   }, [])
 
-  const handleDragLeave = useCallback((id) => {
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }, [])
+
+  const handleDragLeave = useCallback((e, id) => {
+    if (e.currentTarget.contains(e.relatedTarget)) return
     setDragOverId((prev) => (prev === id ? null : prev))
   }, [])
 
@@ -327,8 +333,9 @@ export function App() {
                 dragOver={dragOverId === todo.id && draggingId !== todo.id}
                 onDragStart={(e) => handleDragStart(e, todo.id)}
                 onDragEnd={handleDragEnd}
+                onDragOver={handleDragOver}
                 onDragEnter={() => handleDragEnter(todo.id)}
-                onDragLeave={() => handleDragLeave(todo.id)}
+                onDragLeave={(e) => handleDragLeave(e, todo.id)}
                 onDrop={() => handleDrop(todo.id)}
               />
             ))}
