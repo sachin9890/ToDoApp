@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
 const STORAGE_KEY = 'todos'
+const THEME_KEY = 'taskflow-theme'
 const FILTERS = ['All', 'Active', 'Completed']
 const DATE_FILTERS = ['Any Date', 'Overdue', 'Due Today', 'Due Soon']
 
@@ -21,6 +22,14 @@ function saveTodos(todos) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
 }
 
+function loadTheme() {
+  try {
+    return localStorage.getItem(THEME_KEY) || 'light'
+  } catch {
+    return 'light'
+  }
+}
+
 function toDateKey(date) {
   if (!date) return null
   const d = new Date(date)
@@ -33,7 +42,6 @@ function startOfDay(date) {
   return d
 }
 
-// Get due status relative to today (ignoring time, only comparing dates)
 function getDueStatus(dueDate) {
   if (!dueDate) return null
   const today = startOfDay(new Date())
@@ -72,6 +80,35 @@ function formatDueDate(dueDate) {
     return `in ${days} day${days === 1 ? '' : 's'} · ${formatted}`
   }
   return formatted
+}
+
+// Small presentational components
+function Icon({ path, className = 'w-4 h-4', strokeWidth = 2 }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={strokeWidth}>
+      <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+    </svg>
+  )
+}
+
+const ICONS = {
+  edit: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
+  trash: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16',
+  calendar: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+  plus: 'M12 6v6m0 0v6m0-6h6m-6 0H6',
+  check: 'M5 13l4 4L19 7',
+  x: 'M6 18L18 6M6 6l12 12',
+  sun: 'M12 3v2m0 14v2m9-9h-2M5 12H3m15.86-6.86l-1.42 1.42M6.56 17.44l-1.41 1.41m13.29 0l-1.41-1.41M6.56 6.56L5.15 5.15M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+  moon: 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z',
+  sparkles: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'
+}
+
+function GlassCard({ children, className = '' }) {
+  return (
+    <div className={`rounded-2xl border border-white/40 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-lg shadow-indigo-950/5 dark:shadow-black/20 ${className}`}>
+      {children}
+    </div>
+  )
 }
 
 function TodoItem({ todo, onToggle, onDelete, onEdit, onEditDueDate }) {
@@ -135,35 +172,35 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, onEditDueDate }) {
   }
 
   const dateBadgeClass = todo.completed
-    ? 'text-gray-400 bg-gray-50 border-gray-200'
+    ? 'text-gray-400 dark:text-gray-500 bg-gray-100/60 dark:bg-gray-800/60 border-gray-200 dark:border-gray-700'
     : isOverdue
-      ? 'text-red-600 bg-red-50 border-red-200'
+      ? 'text-rose-600 dark:text-rose-400 bg-rose-50/70 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20'
       : dueStatus === 'today'
-        ? 'text-amber-600 bg-amber-50 border-amber-200'
+        ? 'text-amber-600 dark:text-amber-400 bg-amber-50/70 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20'
         : dueStatus === 'soon'
-          ? 'text-orange-600 bg-orange-50 border-orange-200'
-          : 'text-gray-500 bg-gray-50 border-gray-200'
+          ? 'text-orange-600 dark:text-orange-400 bg-orange-50/70 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/20'
+          : 'text-gray-500 dark:text-gray-400 bg-gray-100/60 dark:bg-gray-800/60 border-gray-200 dark:border-gray-700'
 
   return (
     <li
-      className={`group flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-3 bg-white rounded-xl border shadow-sm hover:shadow-md transition-all duration-200 ${
-        isOverdue ? 'border-red-200 bg-red-50/30' : 'border-gray-200'
+      className={`group animate-scale-in flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-3 rounded-2xl border backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${
+        isOverdue
+          ? 'border-rose-200/70 dark:border-rose-500/20 bg-gradient-to-r from-rose-50/70 to-transparent dark:from-rose-500/10 dark:to-transparent'
+          : 'border-white/40 dark:border-white/10 bg-white/70 dark:bg-white/5 hover:shadow-indigo-500/5 dark:hover:shadow-violet-500/10'
       }`}
     >
       <div className="flex items-center gap-3 w-full sm:flex-1">
         <button
           onClick={() => onToggle(todo.id)}
-          className={`flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+          className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
             todo.completed
-              ? 'bg-emerald-500 border-emerald-500'
-              : 'border-gray-300 hover:border-indigo-400'
+              ? 'bg-gradient-to-br from-emerald-400 to-teal-500 border-transparent shadow-md shadow-emerald-500/30'
+              : 'border-gray-300 dark:border-gray-600 hover:border-violet-400 dark:hover:border-violet-400 hover:scale-110'
           }`}
           aria-label={todo.completed ? 'Mark as incomplete' : 'Mark as complete'}
         >
           {todo.completed && (
-            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+            <Icon path={ICONS.check} className="w-3.5 h-3.5 text-white" strokeWidth={3} />
           )}
         </button>
 
@@ -175,46 +212,41 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, onEditDueDate }) {
             onChange={(e) => setEditText(e.target.value)}
             onBlur={handleSave}
             onKeyDown={handleKeyDown}
-            className="flex-1 px-2 py-1 text-gray-800 border border-indigo-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-200 transition-all duration-200"
+            className="flex-1 px-2 py-1 text-gray-800 dark:text-gray-100 bg-white/80 dark:bg-gray-800/80 border border-violet-300 dark:border-violet-500/40 rounded-lg outline-none focus:ring-2 focus:ring-violet-300 dark:focus:ring-violet-500/40 transition-all duration-200"
           />
         ) : (
           <span
             onDoubleClick={() => setIsEditing(true)}
             className={`flex-1 text-left cursor-pointer transition-all duration-200 ${
               todo.completed
-                ? 'text-gray-400 line-through'
-                : 'text-gray-800 hover:text-indigo-600'
+                ? 'text-gray-400 dark:text-gray-500 line-through'
+                : 'text-gray-800 dark:text-gray-100 hover:text-violet-600 dark:hover:text-violet-400'
             }`}
           >
             {todo.text}
           </span>
         )}
 
-        <div className="flex-shrink-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="flex-shrink-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           {!isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="p-1.5 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all duration-200"
+              className="p-1.5 text-gray-400 dark:text-gray-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10 rounded-lg transition-all duration-200"
               aria-label="Edit todo"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
+              <Icon path={ICONS.edit} />
             </button>
           )}
           <button
             onClick={() => onDelete(todo.id)}
-            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+            className="p-1.5 text-gray-400 dark:text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all duration-200"
             aria-label="Delete todo"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+            <Icon path={ICONS.trash} />
           </button>
         </div>
       </div>
 
-      {/* Due date badge / editor */}
       <div className="flex-shrink-0 flex items-center gap-1 pl-8 sm:pl-0">
         {isEditingDate ? (
           <div className="flex items-center gap-1">
@@ -225,18 +257,16 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, onEditDueDate }) {
               onChange={handleDateChange}
               onKeyDown={handleDateKeyDown}
               onBlur={() => setIsEditingDate(false)}
-              className="px-2 py-1 text-xs text-gray-700 border border-indigo-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-200"
+              className="px-2 py-1 text-xs text-gray-700 dark:text-gray-200 bg-white/80 dark:bg-gray-800/80 border border-violet-300 dark:border-violet-500/40 rounded-lg outline-none focus:ring-2 focus:ring-violet-300 dark:focus:ring-violet-500/40 transition-all duration-200"
             />
             {todo.dueDate && (
               <button
                 onClick={clearDueDate}
-                className="p-1 text-gray-400 hover:text-red-500"
+                className="p-1 text-gray-400 hover:text-rose-500"
                 aria-label="Clear due date"
                 title="Clear due date"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <Icon path={ICONS.x} className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -246,13 +276,11 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, onEditDueDate }) {
               setEditDate(toDateKey(todo.dueDate) || '')
               setIsEditingDate(true)
             }}
-            className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border font-medium whitespace-nowrap hover:opacity-80 transition-opacity ${dateBadgeClass}`}
+            className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium whitespace-nowrap hover:opacity-80 hover:scale-105 transition-all duration-300 ${dateBadgeClass}`}
             aria-label="Edit due date"
             title={`Due: ${todo.dueDate ? new Date(todo.dueDate).toLocaleDateString() : ''}`}
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+            <Icon path={ICONS.calendar} className="w-3.5 h-3.5" />
             {formatDueDate(todo.dueDate)}
           </button>
         ) : (
@@ -262,13 +290,11 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, onEditDueDate }) {
                 setEditDate('')
                 setIsEditingDate(true)
               }}
-              className="flex items-center gap-1 text-xs px-2 py-1 rounded-full border border-dashed border-gray-300 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-indigo-500 hover:border-indigo-300 whitespace-nowrap transition-all duration-200"
+              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-dashed border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 hover:text-violet-500 hover:border-violet-300 dark:hover:text-violet-400 dark:hover:border-violet-500/40 whitespace-nowrap transition-all duration-300"
               aria-label="Set due date"
               title="Set due date"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
+              <Icon path={ICONS.plus} className="w-3.5 h-3.5" />
               Schedule
             </button>
           )
@@ -278,8 +304,65 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, onEditDueDate }) {
   )
 }
 
+function StatsHeader({ todos }) {
+  const total = todos.length
+  const active = todos.filter((t) => !t.completed).length
+  const completed = todos.filter((t) => t.completed).length
+  const overdue = todos.filter(
+    (t) => getDueStatus(t.dueDate) === 'overdue' && !t.completed
+  ).length
+
+  const stats = [
+    { label: 'All tasks', value: total, color: 'from-violet-500 to-indigo-500', ring: 'ring-violet-500/20' },
+    { label: 'Active', value: active, color: 'from-sky-500 to-cyan-500', ring: 'ring-sky-500/20' },
+    { label: 'Completed', value: completed, color: 'from-emerald-400 to-teal-500', ring: 'ring-emerald-500/20' },
+    { label: 'Overdue', value: overdue, color: 'from-rose-500 to-pink-500', ring: 'ring-rose-500/20' }
+  ]
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 animate-fade-in">
+      {stats.map((s) => (
+        <div
+          key={s.label}
+          className={`rounded-xl p-3 text-center ring-1 ring-inset ${s.ring} bg-white/60 dark:bg-white/5 backdrop-blur-lg border border-white/40 dark:border-white/10 shadow-sm`}
+        >
+          <div
+            className={`mx-auto mb-1 w-8 h-8 rounded-lg bg-gradient-to-br ${s.color} flex items-center justify-center text-white font-bold shadow-md`}
+          >
+            {s.value}
+          </div>
+          <div className="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            {s.label}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ThemeToggle({ dark, onToggle }) {
+  return (
+    <button
+      onClick={onToggle}
+      className="relative w-14 h-7 rounded-full p-1 transition-colors duration-300 bg-gradient-to-r from-violet-400 to-indigo-500 dark:from-amber-400 dark:to-orange-500 shadow-inner"
+      aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+      role="switch"
+      aria-checked={dark}
+    >
+      <span
+        className={`block w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${dark ? 'translate-x-7' : 'translate-x-0'}`}
+      />
+      <span className="absolute inset-0 flex items-center justify-between px-1.5 pointer-events-none">
+        <Icon path={ICONS.sun} className="w-3 h-3 text-white opacity-90" strokeWidth={2.5} />
+        <Icon path={ICONS.moon} className="w-3 h-3 text-white opacity-90" strokeWidth={2.5} />
+      </span>
+    </button>
+  )
+}
+
 function App() {
   const [todos, setTodos] = useState(loadTodos)
+  const [dark, setDark] = useState(loadTheme() === 'dark')
   const [filter, setFilter] = useState('All')
   const [dateFilter, setDateFilter] = useState('Any Date')
   const [sortBy, setSortBy] = useState('dueDate')
@@ -290,6 +373,11 @@ function App() {
   useEffect(() => {
     saveTodos(todos)
   }, [todos])
+
+  useEffect(() => {
+    localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light')
+    document.documentElement.classList.toggle('dark', dark)
+  }, [dark])
 
   const addTodo = useCallback(() => {
     const text = newTodo.trim()
@@ -370,87 +458,121 @@ function App() {
     (t) => getDueStatus(t.dueDate) === 'overdue' && !t.completed
   ).length
 
+  const today = new Date().toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric'
+  })
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-      <div className="max-w-xl mx-auto px-4 py-12">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Todo
-            <span className="text-indigo-600"> App</span>
-          </h1>
-          <p className="text-gray-500">Stay organized, get things done</p>
+    <div className="relative min-h-screen text-gray-900 dark:text-gray-100 transition-colors duration-500 overflow-x-hidden">
+      {/* Animated gradient background */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950 transition-colors duration-500" />
+      {/* Decorative floating orbs */}
+      <div className="fixed -z-10 top-[-10%] left-[-5%] w-96 h-96 bg-gradient-to-br from-violet-400/30 to-indigo-500/20 dark:from-violet-500/20 dark:to-indigo-600/10 rounded-full blur-3xl animate-float" />
+      <div className="fixed -z-10 bottom-[-10%] right-[-5%] w-[28rem] h-[28rem] bg-gradient-to-br from-fuchsia-400/20 to-pink-500/20 dark:from-fuchsia-500/10 dark:to-pink-600/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '-3s' }} />
+
+      <div className="max-w-2xl mx-auto px-4 py-10">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-8 animate-fade-in">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+              <Icon path={ICONS.sparkles} className="w-6 h-6 text-white" strokeWidth={1.5} />
+            </div>
+            <div>
+              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 dark:from-violet-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                TaskFlow
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{today}</p>
+            </div>
+          </div>
+          <ThemeToggle dark={dark} onToggle={() => setDark((d) => !d)} />
         </div>
 
+        {/* Stats */}
+        <StatsHeader todos={todos} />
+
         {/* Input */}
-        <div className="flex flex-col gap-2 mb-6">
-          <div className="flex gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={newTodo}
-              onChange={(e) => setNewTodo(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addTodo()}
-              placeholder="What needs to be done?"
-              className="flex-1 px-4 py-3 text-gray-800 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-400 transition-all duration-200"
-            />
-            <input
-              type="date"
-              value={newDueDate}
-              onChange={(e) => setNewDueDate(e.target.value)}
-              className="px-3 py-3 text-gray-700 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-              aria-label="Due date"
-              title="Set a due date (optional)"
-            />
-            <button
-              onClick={addTodo}
-              disabled={!newTodo.trim()}
-              className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl shadow-sm hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
-            >
-              Add
-            </button>
-          </div>
-          <div className="flex gap-2 justify-end">
-            {['Today', 'Tomorrow', 'Next Week'].map((label) => {
-              const today = new Date()
-              let date
-              if (label === 'Today') date = today
-              else if (label === 'Tomorrow') {
-                date = new Date(today)
-                date.setDate(date.getDate() + 1)
-              } else {
-                date = new Date(today)
-                date.setDate(date.getDate() + 7)
-              }
-              return (
+        <GlassCard className="p-4 mb-6 animate-slide-down">
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Icon
+                  path="M9 5a4 4 0 110 8 4 4 0 010-8zM15 15l-3.5-3.5"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none"
+                />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={newTodo}
+                  onChange={(e) => setNewTodo(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addTodo()}
+                  placeholder="What needs to be done?"
+                  className="w-full pl-10 pr-4 py-3 text-gray-800 dark:text-gray-100 bg-white/70 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500 backdrop-blur transition-all duration-200"
+                />
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={newDueDate}
+                  onChange={(e) => setNewDueDate(e.target.value)}
+                  className="px-3 py-3 text-gray-700 dark:text-gray-200 bg-white/70 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-transparent transition-all duration-200"
+                  aria-label="Due date"
+                  title="Set a due date (optional)"
+                />
                 <button
-                  key={label}
-                  onClick={() => setNewDueDate(toDateKey(date))}
+                  onClick={addTodo}
                   disabled={!newTodo.trim()}
-                  className={`text-xs px-3 py-1 rounded-full font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed ${
-                    newDueDate === toDateKey(date)
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'
-                  }`}
+                  className="px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 flex items-center gap-2"
                 >
-                  {label}
+                  <Icon path={ICONS.plus} className="w-4 h-4" strokeWidth={2.5} />
+                  Add
                 </button>
-              )
-            })}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {['Today', 'Tomorrow', 'Next Week'].map((label) => {
+                const today = new Date()
+                let date
+                if (label === 'Today') date = today
+                else if (label === 'Tomorrow') {
+                  date = new Date(today)
+                  date.setDate(date.getDate() + 1)
+                } else {
+                  date = new Date(today)
+                  date.setDate(date.getDate() + 7)
+                }
+                return (
+                  <button
+                    key={label}
+                    onClick={() => setNewDueDate(toDateKey(date))}
+                    disabled={!newTodo.trim()}
+                    className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed ${
+                      newDueDate === toDateKey(date)
+                        ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-500/25'
+                        : 'bg-white/60 dark:bg-gray-800/60 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-500/30 hover:bg-violet-50 dark:hover:bg-violet-500/10 backdrop-blur'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Filter Tabs + Sort */}
         {todos.length > 0 && (
-          <div className="mb-6 space-y-2">
-            <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
+          <div className="mb-6 space-y-2 animate-fade-in">
+            <div className="flex gap-1 p-1 rounded-xl bg-gray-100/70 dark:bg-gray-800/60 backdrop-blur border border-white/40 dark:border-white/5">
               {FILTERS.map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
                   className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all duration-200 ${
                     filter === f
-                      ? 'bg-white text-indigo-600 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-white dark:bg-gray-700 text-violet-600 dark:text-violet-300 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                   }`}
                 >
                   {f}
@@ -462,31 +584,31 @@ function App() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 justify-between">
-              <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
+              <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl bg-gray-100/70 dark:bg-gray-800/60 backdrop-blur border border-white/40 dark:border-white/5">
                 {DATE_FILTERS.map((f) => (
                   <button
                     key={f}
                     onClick={() => setDateFilter(f)}
                     className={`py-1.5 px-3 text-xs font-medium rounded-lg transition-all duration-200 ${
                       dateFilter === f
-                        ? 'bg-white text-indigo-600 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-white dark:bg-gray-700 text-violet-600 dark:text-violet-300 shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                     }`}
                   >
                     {f}
                     {f === 'Overdue' && overdueCount > 0 && (
-                      <span className="ml-1 text-red-500 font-bold">({overdueCount})</span>
+                      <span className="ml-1 text-rose-500 font-bold">({overdueCount})</span>
                     )}
                   </button>
                 ))}
               </div>
 
-              <label className="flex items-center gap-1 text-xs text-gray-500">
+              <label className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                 <span className="font-medium">Sort:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="px-2 py-1.5 bg-white/70 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all duration-200"
                 >
                   <option value="dueDate">Due date</option>
                   <option value="text">Alphabetical</option>
@@ -498,7 +620,7 @@ function App() {
 
         {/* Todo List */}
         {filteredTodos.length > 0 ? (
-          <ul className="space-y-2">
+          <ul className="space-y-2 animate-fade-in">
             {filteredTodos.map((todo) => (
               <TodoItem
                 key={todo.id}
@@ -511,33 +633,31 @@ function App() {
             ))}
           </ul>
         ) : todos.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 bg-indigo-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          <GlassCard className="text-center py-16 animate-scale-in">
+            <div className="mx-auto mb-4 w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500/10 to-indigo-500/10 dark:from-violet-500/20 dark:to-indigo-500/10 flex items-center justify-center">
+              <Icon path={ICONS.check} className="w-10 h-10 text-violet-400 dark:text-violet-300" strokeWidth={1.5} />
             </div>
-            <p className="text-gray-500 text-lg">No todos yet</p>
-            <p className="text-gray-400 text-sm mt-1">Add one above to get started</p>
-          </div>
+            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">No todos yet</h3>
+            <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Add one above to get started</p>
+          </GlassCard>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-400">
-              {filter === 'Active' && 'All caught up! No active todos.'}
+          <GlassCard className="text-center py-12 animate-scale-in">
+            <p className="text-gray-500 dark:text-gray-400">
+              {filter === 'Active' && '✨ All caught up! No active todos.'}
               {filter === 'Completed' && 'No completed todos yet.'}
               {filter === 'All' && dateFilter !== 'Any Date' && 'No todos match this date filter.'}
             </p>
-          </div>
+          </GlassCard>
         )}
 
         {/* Footer */}
         {todos.length > 0 && (
-          <div className="mt-6 flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm">
-            <span className="text-sm text-gray-500">
-              <span className="font-medium text-gray-700">{activeCount}</span>{' '}
+          <div className="mt-6 flex items-center justify-between px-4 py-3 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-sm animate-slide-up">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="font-semibold text-gray-700 dark:text-gray-200">{activeCount}</span>{' '}
               {activeCount === 1 ? 'item' : 'items'} left
               {overdueCount > 0 && (
-                <span className="ml-2 text-xs text-red-500 font-medium">
+                <span className="ml-2 text-xs text-rose-500 font-medium">
                   · {overdueCount} overdue
                 </span>
               )}
@@ -545,7 +665,7 @@ function App() {
             {completedCount > 0 && (
               <button
                 onClick={clearCompleted}
-                className="text-sm text-gray-400 hover:text-red-500 font-medium transition-colors duration-200"
+                className="text-sm text-gray-400 dark:text-gray-500 hover:text-rose-500 dark:hover:text-rose-400 font-medium transition-colors duration-200"
               >
                 Clear completed
               </button>
