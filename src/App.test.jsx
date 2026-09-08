@@ -272,6 +272,24 @@ describe('App', () => {
   })
 
   describe('drag and drop reordering', () => {
+    it('sets move drop effect on dragover and highlights the target', () => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([
+        { id: '1', text: 'A', completed: false, dueDate: null },
+        { id: '2', text: 'B', completed: false, dueDate: null }
+      ]))
+      render(<App />)
+      const first = screen.getByText('A').closest('li')
+      const second = screen.getByText('B').closest('li')
+      const dt = makeDataTransfer()
+
+      fireEvent.dragStart(first, { dataTransfer: dt })
+      fireEvent.dragEnter(second, { dataTransfer: dt })
+      fireEvent.dragOver(second, { dataTransfer: dt })
+
+      expect(dt.dropEffect).toBe('move')
+      expect(second).toHaveClass('ring-violet-400/40')
+    })
+
     it('handles drag leave on tracked item', () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify([
         { id: '1', text: 'A', completed: false, dueDate: null },
