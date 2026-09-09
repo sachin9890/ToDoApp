@@ -222,11 +222,16 @@ export function TodoApp() {
             <ThemeToggle dark={dark} onToggle={() => setDark((d) => !d)} />
             <button
               onClick={logout}
-              className="text-sm text-gray-400 dark:text-gray-500 hover:text-rose-500 dark:hover:text-rose-400 font-medium transition-colors duration-200"
+              className="p-2 text-gray-400 dark:text-gray-500 hover:text-rose-500 dark:hover:text-rose-400 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all duration-200"
               title="Sign out"
             >
-              Sign out
+              <Icon path={ICONS.logout} className="w-5 h-5" strokeWidth={1.5} />
             </button>
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 cursor-default" title={user.username}>
+              <span className="text-sm font-bold text-white">
+                {user.username.charAt(0).toUpperCase()}
+              </span>
+            </div>
           </div>
         </div>
 
