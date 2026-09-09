@@ -1,12 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
-  STORAGE_KEY,
   THEME_KEY,
   FILTERS,
   DATE_FILTERS,
   generateId,
-  loadTodos,
-  saveTodos,
   loadTheme,
   toDateKey,
   startOfDay,
@@ -18,7 +15,6 @@ describe('constants', () => {
   it('exports expected filter lists', () => {
     expect(FILTERS).toEqual(['All', 'Active', 'Completed'])
     expect(DATE_FILTERS).toEqual(['Any Date', 'Overdue', 'Due Today', 'Due Soon'])
-    expect(STORAGE_KEY).toBe('todos')
     expect(THEME_KEY).toBe('taskflow-theme')
   })
 })
@@ -32,39 +28,6 @@ describe('generateId', () => {
   it('generates string ids', () => {
     expect(typeof generateId()).toBe('string')
     expect(generateId()).toBeTruthy()
-  })
-})
-
-describe('loadTodos', () => {
-  beforeEach(() => {
-    localStorage.clear()
-  })
-
-  it('returns empty array when nothing stored', () => {
-    expect(loadTodos()).toEqual([])
-  })
-
-  it('returns parsed todos with default dueDate', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([{ id: '1', text: 'a', completed: false }]))
-    expect(loadTodos()).toEqual([{ id: '1', text: 'a', completed: false, dueDate: null }])
-  })
-
-  it('preserves existing dueDate', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([{ id: '1', text: 'a', dueDate: '2025-01-01' }]))
-    expect(loadTodos()[0].dueDate).toBe('2025-01-01')
-  })
-
-  it('returns empty array on parse error', () => {
-    localStorage.setItem(STORAGE_KEY, 'not json{{{')
-    expect(loadTodos()).toEqual([])
-  })
-})
-
-describe('saveTodos', () => {
-  it('persists todos to localStorage', () => {
-    const todos = [{ id: '1', text: 'x', completed: false, dueDate: null }]
-    saveTodos(todos)
-    expect(JSON.parse(localStorage.getItem(STORAGE_KEY))).toEqual(todos)
   })
 })
 

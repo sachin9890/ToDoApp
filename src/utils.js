@@ -1,23 +1,9 @@
-export const STORAGE_KEY = 'todos'
 export const THEME_KEY = 'taskflow-theme'
 export const FILTERS = ['All', 'Active', 'Completed']
 export const DATE_FILTERS = ['Any Date', 'Overdue', 'Due Today', 'Due Soon']
 
 export function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
-}
-
-export function loadTodos() {
-  try {
-    const todos = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []
-    return todos.map((t) => ({ ...t, dueDate: t.dueDate || null }))
-  } catch {
-    return []
-  }
-}
-
-export function saveTodos(todos) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
 }
 
 export function loadTheme() {
