@@ -3,6 +3,8 @@ import { useAuth } from './contexts/AuthContext.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import SignupPage from './pages/SignupPage.jsx'
 import LandingPage from './pages/LandingPage.jsx'
+import AboutPage from './pages/AboutPage.jsx'
+import ContactPage from './pages/ContactPage.jsx'
 import TodoApp from './TodoApp.jsx'
 
 function ProtectedRoute({ children }) {
@@ -51,6 +53,14 @@ export function App() {
             <TodoApp />
           </ProtectedRoute>
         }
+      />
+      <Route
+        path="/about"
+        element={<AboutPage />}
+      />
+      <Route
+        path="/contact"
+        element={<ContactPage />}
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

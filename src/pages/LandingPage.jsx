@@ -156,13 +156,27 @@ export function LandingPage() {
       </section>
 
       <footer className="relative z-10 border-t border-white/40 dark:border-white/10">
-        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
               <Icon path={ICONS.sparkles} className="w-3.5 h-3.5 text-white" strokeWidth={2} />
             </div>
             <span className="text-sm font-bold text-gray-600 dark:text-gray-300">TaskFlow</span>
           </div>
+          <nav className="flex items-center gap-8">
+            <Link
+              to="/about"
+              className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors duration-200"
+            >
+              About
+            </Link>
+            <Link
+              to="/contact"
+              className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors duration-200"
+            >
+              Contact Us
+            </Link>
+          </nav>
           <p className="text-sm text-gray-400 dark:text-gray-500">
             Built with React & Tailwind CSS. Your data stays in your browser.
           </p>
