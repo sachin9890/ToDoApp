@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import SignupPage from './pages/SignupPage.jsx'
+import LandingPage from './pages/LandingPage.jsx'
 import TodoApp from './TodoApp.jsx'
 
 function ProtectedRoute({ children }) {
@@ -12,7 +13,7 @@ function ProtectedRoute({ children }) {
 
 function GuestRoute({ children }) {
   const { user } = useAuth()
-  if (user) return <Navigate to="/" replace />
+  if (user) return <Navigate to="/app" replace />
   return children
 }
 
@@ -37,6 +38,14 @@ export function App() {
       />
       <Route
         path="/"
+        element={
+          <GuestRoute>
+            <LandingPage />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/app"
         element={
           <ProtectedRoute>
             <TodoApp />
